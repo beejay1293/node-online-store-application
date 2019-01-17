@@ -1,102 +1,48 @@
-const fs = require('fs');
-const path= require('path');
-  const p = path.join(path.dirname(process.mainModule.filename), 'data', 'products.json');
+//import pool from '../utils/database';
 
+const db = require('../utils/database');
 const Cart = require('./cart.js')
-const getProductsFromFile = (cb) => {
-  fs.readFile(p, (err, fileContent) => {
-    if(err){
-     return cb([]);
-   }else{
-    return cb(JSON.parse(fileContent));
-   }
-
-  })
-
-}
 
 module.exports = class Product {
-   constructor(productName, price, image, description){
+   constructor(id, productName, price, image, description){
    this.Product = productName,
    this.Price = price,
    this.Image = image,
    this.Description = description
-   this.id = Math.random().toString()
+   this.id = id
  }
 
     save(){
-    getProductsFromFile(product => {
-      product.push(this)
-      fs.writeFile(p, JSON.stringify(product), (err) => {
-        console.log(err);
-      })
-
-
-
-
-
-
-
-
-
-
-
-    })
-
+     return   db.execute('INSERT INTO store (Product, Price, Description, Image) VALUES (?,?,?,?)', [this.Product, this.Price, this.Description, this.Image]
+   )
       }
 
   static fetchAll(cb){
-   getProductsFromFile(cb)
+  db.execute('SELECT * FROM store').then(([rows, fieldData]) => {
+    cb(rows)
+  }).catch(err => {
+    console.log(err);
+  });
    }
 
-   static findProduct(id, cb) {
-     getProductsFromFile(products => {
-       const product = products.find(p => p.id === id);
-      cb(product)
-     })
+   static editProduct(id, product, price, image, description) {
+     return db.execute("UPDATE store SET Price = ?, Product = ?, Image = ?, Description = ? WHERE id = ?", [price,product,image,description,id])
+  }
 
-   }
-
-   static editProduct(id, products, price, image, description) {
-
-    getProductsFromFile(product => {
-      const productEditIndex = product.findIndex(p => p.id == id)
-
-      let editedProduct = product[productEditIndex];
-      if(editedProduct) {
-
-         editedProduct.Product = products;
-         editedProduct.Image = image;
-         editedProduct.Description = description;
-         editedProduct.Price = price;
-         product[productEditIndex] = editedProduct;
-      }
-
-
-      fs.writeFile(p, JSON.stringify(product), err => {
-        if(err) {
-
-        }
-      })
-
+  static findProduct(id, cb){
+    db.execute('SELECT * FROM store WHERE store.id = ?', [id]).then(([product]) => {
+     cb(product)
+    }).catch((err) => {
+      console.log(err);
     })
   }
 
+  static findProductToEdit(id){
+    db.execute('SELECT * FROM store WHERE store.id = ?', [id])
+  }
+
+
    static deleteProduct(id) {
-    getProductsFromFile(products => {
-      const product = products.find(prod => prod.id === id)
-      if(!product){
-        return;
-      }
-      const productPrice = product.Price;
-      const updatedProduct = products.filter(prod => prod.id !== id)
-      fs.writeFile(p, JSON.stringify(updatedProduct), err => {
-        if(!err){
-       Cart.deleteProductFromCart(id, productPrice)
-        }
-      })
-
-    })
-
-   }
+   return db.execute('DELETE FROM store WHERE store.id = ?', [id])
+}
 }

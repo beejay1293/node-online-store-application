@@ -18,15 +18,23 @@ let product = req.body.Product;
 let price = req.body.Price;
 let image = req.body.Image;
 let description = req.body.Description;
-  product = new Product(product, price, image, description)
-  product.save();
-  res.redirect('/admin/products')
+  product = new Product(null, product, price, image, description)
+  product.save().then(() => {
+      res.redirect('/admin/products')
+  }).catch(err => {
+         console.log(err);
+       });
+
+
 }
 
 exports.getProducts = (req, res) => {
-  Product.fetchAll(product => { res.render('shop/product-list', {pageTitle: 'Shop', prods: product,
+  Product.fetchAll(products => {
+    res.render('shop/product-list', {pageTitle: 'Shop', prods: products,
   path: '/shop/product-list'
-  })})
+  })
+  })
+
 }
 
 exports.getCart = (req, res) => {
@@ -62,10 +70,11 @@ exports.getOrders = (req, res) => {
 
 exports.getProduct = (req, res) => {
   const productId = req.params.productId
-  Product.findProduct(productId, product => {
-    res.render('shop/product-detail', { product: product, pageTitle: 'product details', path: '/product/product-detail'})
+  Product.findProduct(productId, ([products]) => {
+    console.log(products)
+        res.render('shop/product-detail', { product: products, pageTitle: 'product details', path: '/product/product-detail'})
   })
-}
+  }
    exports.deleteCartItem = (req, res) => {
      const prodId = req.body.productId
      console.log(prodId)

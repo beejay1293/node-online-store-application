@@ -7,7 +7,8 @@ exports.getAdminProducts = (req, res) => {
 
 exports.getEditProduct = (req, res) => {
   prodId = req.params.productId
-  Product.findProduct(prodId, product => {
+  Product.findProduct(prodId, ([product]) => {
+    // COMBAK:
     res.render('admin/edit-product', {pageTitle: 'Edit-product', prods: product, path: '/admin/add-product'})
   })
 }
@@ -20,12 +21,20 @@ exports.editProducts = (req, res) => {
   productImage = req.body.Image;
 
 
-  Product.editProduct(prodId,product,productPrice,productImage,productDescription)
-  res.redirect('/admin/products');
+  Product.editProduct(prodId,product,productPrice,productImage,productDescription).then(() => {
+      res.redirect('/admin/products');
+  }).catch(err => {
+    console.log(err);
+  })
+
 }
 
 exports.deleteProduct = (req, res) => {
   prodId = req.body.productId;
-    Product.deleteProduct(prodId)
-    res.redirect('/admin/products')
+    Product.deleteProduct(prodId).then(() => {
+   res.redirect('/admin/products')
+    }).catch(err => {
+      console.log(err);
+    })
+
 }

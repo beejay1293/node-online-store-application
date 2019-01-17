@@ -26,8 +26,8 @@ const productController = require('./controllers/products.js')
 app.set('view engine', 'ejs');
 app.set('views', 'views')
 
-db.execute('SELECT * FROM shop').then(result => {
-  console.log(result[0], result[1]);
+db.execute('SELECT * FROM shop').then(([rows, data]) => {
+  console.log(rows[0]);
 }).catch(err => {
   console.log(err);
 })
